@@ -1,0 +1,50 @@
+sudo -u postgres psql -d postgres
+sudo -u postgres psql -h localhost -d postgres
+
+############ create table with array
+
+create schema
+
+	# CREATE SCHEMA rawdata;
+
+lo list schema
+
+	# \dn
+
+create table
+
+	# create table rawdata.migration(from_country_name text,to_country_name text[],migration_value integer[]);
+
+	# create table rawdata.remittance(from_country_name text,to_country_name text[],remittance_value integer[]);
+
+insert data
+
+	# insert into migration values('Argentina','{Afghanistan,Albania,Algeria,American Samoa,Andorra,Angola,Antigua and Barbuda,Argentina,Armenia,Aruba,Australia,Austria,Azerbaijan}','{0,0,0,0,708,0,0,0,0,71,14832,1485,0}');
+
+
+to list tables
+
+	# \dt 	
+
+
+to Describe table
+
+	# \d+ tablename;
+
+Select Query
+
+	# select c_name,unnest(t_name) as c1 from migration group by c1,c_name;
+
+	# select c_name,unnest(t_name)as t1, unnest(m_value)as t2 from migration;
+
+
+	# create table cn as select c_name,unnest(t_name)as t1, unnest(m_value)as t2 from migration;
+
+	# select c_name,count(t2) as c_count from cn where t2 != 0 group by c_name order by c_count desc;
+	
+ 	# select c_name,sum(t2) as c_sum,count(t2)as c_count from cn where t2 != 0 group by c_name order by c_count desc;
+
+
+
+##############################################################
+

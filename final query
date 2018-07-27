@@ -1,0 +1,216 @@
+Step:	1	Create Schema
+
+	# CREATE SCHEMA rawdata;
+
+
+Step:	2	List the Show Path
+
+
+	# SHOW search_path;
+
+
+Step:	3	Change the current path to schema
+
+
+	# SET search_path to rawdata;
+
+
+Step:	4	Create schema table
+
+	
+	# create table migration (country text,to_country text,migration_value text);
+
+	# create table remittance (country text,to_country text,remittance_value text);
+
+
+    This may also work or if you are in default public path you want use
+
+
+	# create table rawdata.migration (country text,to_country text,migration_value text);
+
+	# create table rawdata.remittance (country text,to_country text,remittance_value text);
+
+
+Step:	5	Create Schema
+
+	
+	# CREATE SCHEMA testdata;
+
+
+Step:	6	Joining the migration and remittance data and save it in new table in another schema(testdata) 
+
+
+	# create table testdata.country_data as select r.country,r.to_country,CAST(coalesce(r.remittance_value,'0')AS integer) as remi_value,CAST(coalesce(m.migration_value,'0')AS integer) as migr_value from remittance r inner join migration m on r.country = m.country and r.to_country = m.to_country order by r.country;
+
+
+
+
+
+
+
+
+
+
+select remitees.cou_name as from_country,unnest(remitees.ct_name) as to_country,unnest(migration.mig_value) as migration_value,unnest(remitees.m_value) as remitee_value from migration, remitees WHERE migration.cou_name = remitees.cou_name AND unnest(remitees.ct_name) = unnest(migration.ct_name);
+
+
+select n1.from_country, n1.to_country, n1.remitees_value from (select cou_name as from_country, unnest(ct_name) as to_country, unnest(m_value) as remitees_value from remitees) n1;
+
+
+
+
+select n1.from_country, n1.to_country, n1.remitees_value,n2.migration_value from (select from_country_name as from_country, unnest(to_country_name) as to_country, unnest(remittance_value) as remitees_value from rawdata.remittance) n1 inner join (select from_country_name as m_country,unnest(to_country_name) as mto_country,unnest(migration_value) as migration_value from rawdata.migration) n2 on(n1.from_country = n2.m_country AND n1.to_country = n2.mto_country)order by n1.from_country, n1.to_country;
+
+
+
+
+
+select n1.from_country, n1.to_country, n1.m_value, n2.r_value from (select from_country_name as from_country, unnest(to_country_name) as to_country,unnest(migration_value) as m_value from rawdata.migration) n1 inner join (select from_country_name as r_country, unnest(to_country_name)as to_country, unnest(remittance_value) as r_value from rawdata.remittance) n2 on (n1.from_country = n2.r_country AND n1.to_country = n2.to_country);
+
+
+
+SHOW search_path;
+
+SET search_path to rawdata;
+
+create table migration (country text,to_country text,migration_value text);
+
+create table remittance (country text,to_country text,remittance_value text);
+
+
+DELETE FROM migration where country = '';
+
+DELETE FROM remittance where country = '';
+
+
+select country,to_country,CAST(coalesce(migration_value,'0')AS integer) from migration;
+
+select r.country,r.to_country,CAST(coalesce(r.remittance_value,'0')AS integer) as remi_value,CAST(coalesce(m.migration_value,'0')AS integer) as migr_value from remittance r inner join migration m on r.country = m.country and r.to_country = m.to_country order by r.country;
+
+CREATE SCHEMA testdata;
+
+create table testdata.country_data as select r.country,r.to_country,CAST(coalesce(r.remittance_value,'0')AS integer) as remi_value,CAST(coalesce(m.migration_value,'0')AS integer) as migr_value from remittance r inner join migration m on r.country = m.country and r.to_country = m.to_country order by r.country;
+
+select * from testdata.country_data;
+
+
+
+question 1
+
+postgres=# select country,to_country,sum(migr_value)as migration_value from country_data where migr_value != 0 group by country,to_country order by migration_value desc limit 10;      
+      country       |      to_country      | migration_value 
+--------------------+----------------------+-----------------
+ Mexico             | United States        |        12950828
+ Russian Federation | Ukraine              |         3453506
+ Bangladesh         | India                |         3230025
+ Ukraine            | Russian Federation   |         2939083
+ Kazakhstan         | Russian Federation   |         2479430
+ China              | United States        |         2383831
+ Russian Federation | Kazakhstan           |         2367340
+ Afghanistan        | Pakistan             |         2326275
+ Afghanistan        | Iran, Islamic Rep.   |         2299676
+ China              | Hong Kong SAR, China |         2280210
+
+
+
+
+question 2
+
+
+
+postgres=# select country,to_country,sum(remi_value)as remittance_value from country_data where remi_value != 0 group by country,to_country order by remittance_value desc limit 10;
+       country        |    to_country    | remittance_value 
+----------------------+------------------+------------------
+ United States        | Mexico           |            28126
+ United States        | China            |            15418
+ Hong Kong SAR, China | China            |            14851
+ United Arab Emirates | India            |            12575
+ United States        | India            |            10657
+ United States        | Philippines      |            10536
+ Saudi Arabia         | India            |            10225
+ United States        | Guatemala        |             6756
+ United States        | Vietnam          |             6668
+ Saudi Arabia         | Egypt, Arab Rep. |             6425
+
+
+
+
+
+question 3
+
+
+postgres=# select country,count(migr_value)as migration_value from country_data where migr_value != 0 group by country order by migration_value desc limit 10;
+    country     | migration_value 
+----------------+-----------------
+ United States  |             160
+ United Kingdom |             144
+ China          |             144
+ France         |             137
+ India          |             136
+ Germany        |             130
+ Canada         |             128
+ Australia      |             118
+ Italy          |             115
+ Pakistan       |             112
+
+
+
+
+question 4
+
+
+
+postgres=# select country,count(remi_value)as remittance_value from country_data where remi_value != 0 group by country order by remittance_value desc limit 10;
+    country    | remittance_value 
+---------------+------------------
+ United States |              161
+ Canada        |              146
+ Australia     |              136
+ France        |              133
+ Switzerland   |              123
+ Italy         |              122
+ Netherlands   |              119
+ Germany       |              117
+ Sweden        |              112
+ Norway        |              107
+
+
+
+
+question 5
+
+
+
+postgres=# select country,avg(migr_value)as migration_value from country_data where migr_value != 0 group by country order by migration_value desc limit 10;
+      country       |   migration_value   
+--------------------+---------------------
+ Mexico             | 169491.423076923077
+ India              | 102089.823529411765
+ Russian Federation | 100096.119266055046
+ Bangladesh         |  80554.627659574468
+ Afghanistan        |  74107.842105263158
+ China              |  67006.993055555556
+ Ukraine            |  65693.011764705882
+ West Bank and Gaza |  64809.983870967742
+ Philippines        |  58268.029126213592
+ Pakistan           |  55092.955357142857
+
+
+
+
+question 6
+
+
+postgres=# select country,avg(remi_value)as remittance_value from country_data where remi_value != 0 group by country order by remittance_value desc limit 10;
+       country        |   remittance_value    
+----------------------+-----------------------
+ Saudi Arabia         | 1760.7200000000000000
+ United Arab Emirates | 1073.2413793103448276
+ United States        |  858.1801242236024845
+ Hong Kong SAR, China |  629.5384615384615385
+ Nepal                |  490.5000000000000000
+ Macao SAR, China     |  428.4000000000000000
+ Kuwait               |  396.9259259259259259
+ Singapore            |  395.5333333333333333
+ Qatar                |  382.9615384615384615
+ Oman                 |  276.4666666666666667

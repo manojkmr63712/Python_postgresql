@@ -1,0 +1,124 @@
+Question :	1
+
+	Top 10 country_to_country by number of migrants
+
+
+postgres=# select country,to_country,sum(migr_value)as migration_value from testdata.country_data where migr_value != 0 group by country,to_country order by migration_value desc limit 10;      
+      country       |      to_country      | migration_value 
+--------------------+----------------------+-----------------
+ Mexico             | United States        |        12950828
+ Russian Federation | Ukraine              |         3453506
+ Bangladesh         | India                |         3230025
+ Ukraine            | Russian Federation   |         2939083
+ Kazakhstan         | Russian Federation   |         2479430
+ China              | United States        |         2383831
+ Russian Federation | Kazakhstan           |         2367340
+ Afghanistan        | Pakistan             |         2326275
+ Afghanistan        | Iran, Islamic Rep.   |         2299676
+ China              | Hong Kong SAR, China |         2280210
+
+
+
+
+Question :	2
+
+	Top 10 country_to_country by volume of remittances
+
+
+postgres=# select country,to_country,sum(remi_value)as remittance_value from testdata.country_data where remi_value != 0 group by country,to_country order by remittance_value desc limit 10;
+       country        |    to_country    | remittance_value 
+----------------------+------------------+------------------
+ United States        | Mexico           |            28126
+ United States        | China            |            15418
+ Hong Kong SAR, China | China            |            14851
+ United Arab Emirates | India            |            12575
+ United States        | India            |            10657
+ United States        | Philippines      |            10536
+ Saudi Arabia         | India            |            10225
+ United States        | Guatemala        |             6756
+ United States        | Vietnam          |             6668
+ Saudi Arabia         | Egypt, Arab Rep. |             6425
+
+
+
+
+Question :	3
+
+	Top 10 sending countries
+
+
+postgres=# select country,count(migr_value)as migration_value from testdata.country_data where migr_value != 0 group by country order by migration_value desc limit 10;
+    country     | migration_value 
+----------------+-----------------
+ United States  |             160
+ United Kingdom |             144
+ China          |             144
+ France         |             137
+ India          |             136
+ Germany        |             130
+ Canada         |             128
+ Australia      |             118
+ Italy          |             115
+ Pakistan       |             112
+
+
+
+Question :	4
+
+	Top 10 receiving countries
+
+
+postgres=# select country,count(remi_value)as remittance_value from testdata.country_data where remi_value != 0 group by country order by remittance_value desc limit 10;
+    country    | remittance_value 
+---------------+------------------
+ United States |              161
+ Canada        |              146
+ Australia     |              136
+ France        |              133
+ Switzerland   |              123
+ Italy         |              122
+ Netherlands   |              119
+ Germany       |              117
+ Sweden        |              112
+ Norway        |              107
+
+
+
+Question :	5
+
+	Top 10 Net senders
+
+postgres=# select country,avg(migr_value)as migration_value from testdata.country_data where migr_value != 0 group by country order by migration_value desc limit 10;
+      country       |   migration_value   
+--------------------+---------------------
+ Mexico             | 169491.423076923077
+ India              | 102089.823529411765
+ Russian Federation | 100096.119266055046
+ Bangladesh         |  80554.627659574468
+ Afghanistan        |  74107.842105263158
+ China              |  67006.993055555556
+ Ukraine            |  65693.011764705882
+ West Bank and Gaza |  64809.983870967742
+ Philippines        |  58268.029126213592
+ Pakistan           |  55092.955357142857
+
+
+
+Question :	6
+
+	Top 10 Net receivers
+
+
+postgres=# select country,avg(remi_value)as remittance_value from testdata.country_data where remi_value != 0 group by country order by remittance_value desc limit 10;
+       country        |   remittance_value    
+----------------------+-----------------------
+ Saudi Arabia         | 1760.7200000000000000
+ United Arab Emirates | 1073.2413793103448276
+ United States        |  858.1801242236024845
+ Hong Kong SAR, China |  629.5384615384615385
+ Nepal                |  490.5000000000000000
+ Macao SAR, China     |  428.4000000000000000
+ Kuwait               |  396.9259259259259259
+ Singapore            |  395.5333333333333333
+ Qatar                |  382.9615384615384615
+ Oman                 |  276.4666666666666667

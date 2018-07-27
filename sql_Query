@@ -1,0 +1,48 @@
+Step:	1	Create Schema
+
+	# CREATE SCHEMA rawdata;
+
+
+Step:	2	List the Show Path
+
+
+	# SHOW search_path;
+
+
+Step:	3	Change the current path to schema
+
+
+	# SET search_path to rawdata;
+
+
+Step:	4	Create schema table
+
+	
+	# create table migration (country text,to_country text,migration_value text);
+
+	# create table remittance (country text,to_country text,remittance_value text);
+
+
+    This may also work or if you are in default public path you want use
+
+
+	# create table rawdata.migration (country text,to_country text,migration_value text);
+
+	# create table rawdata.remittance (country text,to_country text,remittance_value text);
+
+
+Step:	5	Create Schema
+
+	
+	# CREATE SCHEMA testdata;
+
+
+Step:	6	Joining the migration and remittance data and save it in new table in another schema(testdata) 
+
+
+	# create table testdata.country_data as select r.country,r.to_country,CAST(coalesce(r.remittance_value,'0')AS integer) as remi_value,CAST(coalesce(m.migration_value,'0')AS integer) as migr_value from remittance r inner join migration m on r.country = m.country and r.to_country = m.to_country order by r.country;
+
+	or
+
+	# create table testdata.country_data as select r.country,r.to_country,CAST(coalesce(r.remittance_value,'0')AS integer) as remi_value,CAST(coalesce(m.migration_value,'0')AS integer) as migr_value from rawdata.remittance r inner join rawdata.migration m on r.country = m.country and r.to_country = m.to_country order by r.country;
+
